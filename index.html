@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CyberShield Security Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,sans-serif;background:#09111c;color:#eef2ff;display:flex}
+aside{width:250px;background:#0f172a;height:100vh;padding:24px;position:fixed;border-right:1px solid #223}
+aside h2{color:#60a5fa;margin-bottom:25px}.nav a{display:block;color:#cbd5e1;padding:12px;border-radius:10px;text-decoration:none}.nav a:hover{background:#1e293b}
+main{margin-left:250px;padding:25px;width:100%}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}.card{background:#111827;border:1px solid #263244;border-radius:18px;padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:.3s}.card:hover{transform:translateY(-4px)}
+input,button{width:100%;padding:12px;margin-top:10px;background:#0b1220;color:#fff;border:1px solid #334155;border-radius:10px}
+button{background:#2563eb;border:none;cursor:pointer}button:hover{background:#3b82f6}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}.kpi{background:#111827;padding:18px;border-radius:16px}.big{font-size:28px;font-weight:700}
+.badge{padding:4px 10px;border-radius:20px}.low{background:#14532d}.high{background:#7f1d1d}.med{background:#854d0e}
+#console{height:220px;background:#020617;padding:10px;overflow:auto;font-family:monospace;border-radius:10px;color:#22c55e}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #334155}
+.progress{height:12px;background:#1e293b;border-radius:10px;margin-top:10px}.bar{height:100%;width:0;background:#22c55e;border-radius:10px;transition:.5s}
+canvas.chart{height:240px!important}
+</style></head><body>
+<aside><h2><i class="fa-solid fa-shield-halved"></i> CyberShield</h2><div class="nav">
+<a href="#">Dashboard</a><a href="#">Threat Intelligence</a><a href="#">URL Analysis</a><a href="#">Password Security</a><a href="#">Vulnerabilities</a><a href="#">Audit Logs</a></div></aside>
+<main><div class="top"><h1>Security Operations Dashboard</h1><input style="max-width:250px" placeholder="Search"></div>
+<div class="kpis"><div class=kpi><div>Security Score</div><div class=big id=score>100</div></div><div class=kpi><div>Threats</div><div class=big id=th>0</div></div><div class=kpi><div>Scans</div><div class=big id=sc>0</div></div><div class=kpi><div>Status</div><div class="badge low">Protected</div></div></div>
+<div class=grid>
+<div class=card><h3>URL Risk Analysis</h3><input id=url placeholder="https://example.com"><button onclick="scan()">Analyze URL</button><div id=urlr></div></div>
+<div class=card><h3>Password Analyzer</h3><input id=pw type=password><button onclick="pw()">Analyze Password</button><div class=progress><div class=bar id=bar></div></div><div id=pwr></div></div>
+<div class=card><h3>Vulnerability Assessment</h3><button onclick="vuln()">Run Scan</button><table><thead><tr><th>Severity</th><th>Finding</th></tr></thead><tbody id=vbody></tbody></table></div>
+<div class=card><h3>Security Console</h3><div id=console></div></div>
+<div class=card><h3>Threat Timeline</h3><canvas id=l class=chart></canvas></div>
+<div class=card><h3>Threat Distribution</h3><canvas id=d class=chart></canvas></div>
+</div></main>
+<script>
+let score=100,th=0,sc=0;const c=document.getElementById('console');
+function log(t){c.innerHTML+="["+new Date().toLocaleTimeString()+"] "+t+"<br>";c.scrollTop=c.scrollHeight}
+function upd(){score=Math.max(0,score);score=Math.min(100,score);scoreEl.textContent=score;thEl.textContent=th;scEl.textContent=sc}
+const scoreEl=document.getElementById('score'),thEl=document.getElementById('th'),scEl=document.getElementById('sc');
+function scan(){sc++;let u=url.value.toLowerCase(),r=0;if(!u.startsWith('https://'))r+=20;if(u.includes('@'))r+=30;if(u.includes('login'))r+=15;if(u.includes('verify'))r+=15;if(u.length>60)r+=10;
+if(r>40){urlr.innerHTML='<span class="badge high">High Risk</span>';score-=15;th++;}else urlr.innerHTML='<span class="badge low">Low Risk</span>';log("URL analyzed. Risk="+r);upd();}
+function pw(){sc++;let p=pwEl.value,s=0;if(p.length>=12)s++;if(/[A-Z]/.test(p))s++;if(/[a-z]/.test(p))s++;if(/[0-9]/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;let w=s*20;bar.style.width=w+'%';pwr.innerHTML=['Very Weak','Weak','Fair','Good','Strong'][Math.max(0,s-1)]||'Very Weak';if(s<3){score-=10;th++;}log('Password analyzed');upd();}
+const pwEl=document.getElementById('pw');
+function vuln(){const arr=[['Critical','Missing CSP'],['High','Outdated Library'],['Medium','No HSTS'],['Low','Missing Referrer Policy']];vbody.innerHTML='';let n=Math.floor(Math.random()*4)+1;for(let i=0;i<n;i++){vbody.innerHTML+=`<tr><td>${arr[i][0]}</td><td>${arr[i][1]}</td></tr>`;}score-=n*4;th+=n;sc++;log('Assessment complete');upd();}
+new Chart(document.getElementById('l'),{type:'line',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{data:[3,5,4,7,2,4,1]}]},options:{plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('d'),{type:'doughnut',data:{labels:['Phishing','Malware','Credential','Bots'],datasets:[{data:[35,25,20,20]}]}});
+log('CyberShield initialized');upd();
+</script></body></html>
